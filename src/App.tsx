@@ -1,7 +1,114 @@
+import { useEffect, useState } from 'react'
+import {City} from 'country-state-city'
 import humidity from './assets/humidity.png'
 import wind from './assets/wind.png'
+import clear from './assets/clear.png'
+import cloud from './assets/cloud.png'
+import drizzle from './assets/drizzle.png'
+import snow from './assets/snow.png'
+
+type CityType = {
+  name: string,
+  countryCode: string,
+  stateCode: string,
+  latitude: string,
+  longitude: string
+}
+
+const cities = City.getAllCities().filter(city => city.countryCode === "IN");
+
+
 
 function App() {
+
+  const [filteredCities, setFilteredCities] = useState<any>([])
+  // console.log(cities)
+  const [value, setValue] = useState("")
+  const [error, setError] = useState("")
+
+  const [weather, setWeather] = useState({
+                                            temp: 0,
+                                            city: "",
+                                            humidity: 0,
+                                            wind: 0,
+                                            icon: ""
+                                          })
+
+  const getImagePath = (icon:string) => {
+    
+    switch(icon){
+        case "Clear":
+          return clear;
+        case "Clouds":
+          return cloud;
+        case "Drizzle":
+          return drizzle;
+        case "Snow":
+          return snow;
+        default:
+          return clear;
+    }
+  }
+
+
+  const fetchCurrentCityWeather = async (city:string=weather.city) => {
+    setError("")
+    const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${import.meta.env.VITE_WEATHER_API_KEY}&units=metric`)
+       
+    if(!res.ok) setError("Enter a valid city name")
+    else{
+      const data = await res.json()
+      console.log(data)
+      setWeather({
+        temp: data.main.temp,
+        city: data.name,
+        humidity: data.main.humidity,
+        wind: data.wind.speed,
+        icon: getImagePath(data.weather[0].main)
+      })
+    }
+    
+  }
+
+  const handleSuggestions = (city:string) => {
+    setValue(city)
+    fetchCurrentCityWeather(city)
+    setFilteredCities([])
+  }
+
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const {latitude, longitude} = position.coords
+      fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${import.meta.env.VITE_WEATHER_API_KEY}&units=metric`)
+      .then(res => res.json())
+      .then(data => {
+        // console.log(data)
+        setWeather({
+          temp: data.main.temp,
+          city: data.name,
+          humidity: data.main.humidity,
+          wind: data.wind.speed,
+          icon: getImagePath(data.weather[0].main)
+        })
+      })
+    }
+    )
+    // fetchCurrentCityWeather()
+  },[])
+
+  
+
+  useEffect(() => {
+    if(value.length > 0){
+      const filtered = cities.filter(city => city.name.toLowerCase().includes(value.toLowerCase()))
+      console.log("Suggestions:", filtered)
+      setFilteredCities(filtered)
+    }else{
+      setFilteredCities([])
+    }
+  },[value, cities])
+
 
   return (
     <main className="flex justify-center items-center h-screen">
@@ -9,10 +116,30 @@ function App() {
         <h1 className="text-3xl font-semibold text-white text-center py-4">Weather App</h1>
         {/* SEARCH FIELD */}
         <div className="flex gap-2 px-4">
-          <input type="text" placeholder="Enter any city name"
-                 className="w-full rounded-md p-2 bg-gray-100 focus:outline-slate-400" />
-          <button className="bg-gray-200 rounded-md p-2 focus:outline-none hover:scale-110 transform transition-all duration-300 ease-in-out">
-              <svg
+          <div className='flex flex-col relative w-full'>
+          <input type="text"
+                 value={value}
+                 onChange={(e) => setValue(e.target.value)}
+                 placeholder="Enter any city name"
+                 className="w-full rounded-md p-2 px-4 bg-gray-100 focus:outline-slate-500 font-semibold" />
+                 
+                 {filteredCities.length > 0 && (
+                  <ul className="absolute h-28 px-4 opacity-80 overflow-y-scroll overflow-x-hidden z-10 bg-white border border-gray-300 w-full top-10  rounded-md shadow-md">
+                    {filteredCities.map((city:CityType, i:number) => (
+                      <li
+                        key={i}
+                        onClick={() => handleSuggestions(city.name)}
+                        className="p-2 cursor-pointer hover:bg-gray-100"
+                      >
+                        {city.name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+          </div>
+          <button onClick={() => fetchCurrentCityWeather(value)}
+                  className="bg-gray-200 rounded-md p-2 focus:outline-none hover:scale-110 transform transition-all duration-300 ease-in-out">
+            <svg
                className="w-6 h-6 "
                viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <g id="SVGRepo_bgCarrier" strokeWidth={0} />
@@ -29,25 +156,29 @@ function App() {
               </g>
             </svg>  
           </button>
+
         </div>
 
+        <p className='text-amber-400 text-center font-medium py-4'>{error && error}</p>
+
         {/* WEATHER DETAILS */}
-        <div className="flex gap-8 justify-center pt-16 ">
-          <img src="https://cdn-icons-png.flaticon.com/512/10127/10127236.png"
-                alt="weather icon" className="w-24 h-24 " />
+        <div className="flex gap-8 justify-center pt-12 ">
+          <img src={weather.icon === "" ? clear : weather.icon}
+                alt="weather icon"
+                className="w-24 h-24 " />
           <div className="my-auto">
-            <h1 className="text-white text-5xl font-semibold">30°c</h1>
-            <h3 className="text-white text-2xl font-semi">Guwahati</h3>
+            <h1 className="text-white text-5xl font-semibold">{weather.temp}°c</h1>
+            <h3 className="text-white text-2xl font-semi">{weather.city}</h3>
           </div>
         </div>
 
         {/* WEATHER INFO */}
-        <div style={{height:"30%"}} className=" flex items-end  justify-between mt-8 px-4 md:lg:px-8 ">
-
+        <div style={{height:"25%"}} className=" flex items-end  justify-between mt-8 px-4 md:lg:px-8 ">
+          
           <div className="flex items-center gap-2">
             <img src={humidity} alt="humidity icon" className="w-9 h-9" />
             <div>
-              <h3 className="text-white text-2xl font-semibold">30%</h3>
+              <h3 className="text-white text-2xl font-semibold">{weather.humidity}%</h3>
               <h3 className="text-white text-md font-medium">Humidity</h3>
             </div>
           </div>
@@ -55,7 +186,7 @@ function App() {
           <div className="flex items-center gap-2">
             <img src={wind} alt="humidity icon" className="w-9 h-9" />
             <div>
-              <h3 className="text-white text-2xl font-semibold">2.6 km/h</h3>
+              <h3 className="text-white text-2xl font-semibold">{weather.wind} km/h</h3>
               <h3 className="text-white text-md font-medium">Wind speed</h3>
             </div>
           </div>
