@@ -38,7 +38,7 @@ const getImagePath = (icon:string) => {
 
 
 export const fetchWeather = createAsyncThunk('weather/fetchWeather', async (city: string) => {
-    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${import.meta.env.VITE_WEATHER_API_KEY}&units=metric`);
+    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=99991ee5959e182ba69ee9d8d2a2e223&units=metric`);
     const data = await response.json();
     if (response.ok) {
         return data;
