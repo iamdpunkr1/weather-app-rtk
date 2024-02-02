@@ -6,6 +6,7 @@ import snow from '../assets/snow.png'
 
 type WeatherType = {
     temp: number;
+    feels_like: number;
     city: string;
     humidity: number;
     wind: number;
@@ -53,6 +54,7 @@ const initialState: WeatherStateType = {
     loading: false,
     weather: {
         temp: 0,
+        feels_like: 0,
         city: '',
         humidity: 0,
         wind: 0,
@@ -75,6 +77,7 @@ const weatherSlice = createSlice({
             state.loading = false;
             state.weather = {
                 temp: action.payload.main.temp,
+                feels_like: action.payload.main.feels_like,
                 city: action.payload.name,
                 humidity: action.payload.main.humidity,
                 wind: action.payload.wind.speed,

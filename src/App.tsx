@@ -158,7 +158,8 @@ function App() {
                 alt="weather icon"
                 className="w-24 h-24 " />
           <div className="my-auto">
-            <h1 className="text-white text-5xl font-semibold">{weather.temp}°c</h1>
+            <h1 className="text-white text-5xl font-semibold">{weather.temp.toFixed(1)}°c</h1>
+            <h2 className="text-white text-md py-1 font-base ml-1"> Feels like: {weather.feels_like.toFixed(1)}°c</h2>
             <h3 className="text-white text-2xl font-semi">{weather.city}</h3>
           </div>
         </div>
@@ -167,18 +168,18 @@ function App() {
         <div style={{height:"25%"}} className=" flex items-end  justify-between mt-8 px-4 md:lg:px-8 ">
           
           <div className="flex items-center gap-2">
-            <img src={humidity} alt="humidity icon" className="w-9 h-9" />
+            <img src={humidity} alt="humidity icon" className="w-7 h-7 md:lg:w-9 md:lg:h-9" />
             <div>
-              <h3 className="text-white text-2xl font-semibold">{weather.humidity}%</h3>
-              <h3 className="text-white text-md font-medium">Humidity</h3>
+              <h3 className="text-white text-xl md:lg:text-2xl font-semibold">{weather.humidity}%</h3>
+              <h3 className="text-white text-sm md:lg:text-md font-medium">Humidity</h3>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <img src={wind} alt="humidity icon" className="w-9 h-9" />
+            <img src={wind} alt="humidity icon" className="w-7 h-7 md:lg:w-9 md:lg:h-9" />
             <div>
-              <h3 className="text-white text-2xl font-semibold">{weather.wind} km/h</h3>
-              <h3 className="text-white text-md font-medium">Wind speed</h3>
+              <h3 className="text-white text-xl md:lg:text-2xl font-semibold">{weather.wind} km/h</h3>
+              <h3 className="text-white md:lg:text-md font-medium">Wind speed</h3>
             </div>
           </div>
 
