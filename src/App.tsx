@@ -3,9 +3,9 @@ import {City} from 'country-state-city'
 import humidity from './assets/humidity.png'
 import wind from './assets/wind.png'
 import clear from './assets/clear.png'
-import cloud from './assets/cloud.png'
-import drizzle from './assets/drizzle.png'
-import snow from './assets/snow.png'
+
+import { useAppDispatch, useAppSelector } from './app/hooks'
+import { fetchWeather } from './features/weatherSlice'
 
 type CityType = {
   name: string,
@@ -18,82 +18,70 @@ type CityType = {
 const cities = City.getAllCities().filter(city => city.countryCode === "IN");
 
 
-
 function App() {
 
+  const dispatch = useAppDispatch();
+  const {loading, weather, error} = useAppSelector(state => state.weather)
+  console.log(weather)
   const [filteredCities, setFilteredCities] = useState<any>([])
-  // console.log(cities)
   const [value, setValue] = useState("")
-  const [error, setError] = useState("")
+  // const [error, setError] = useState("")
 
-  const [weather, setWeather] = useState({
-                                            temp: 0,
-                                            city: "",
-                                            humidity: 0,
-                                            wind: 0,
-                                            icon: ""
-                                          })
-
-  const getImagePath = (icon:string) => {
-    
-    switch(icon){
-        case "Clear":
-          return clear;
-        case "Clouds":
-          return cloud;
-        case "Drizzle":
-          return drizzle;
-        case "Snow":
-          return snow;
-        default:
-          return clear;
-    }
-  }
+  // const [weather, setWeather] = useState({
+  //                                           temp: 0,
+  //                                           city: "",
+  //                                           humidity: 0,
+  //                                           wind: 0,
+  //                                           icon: ""
+  //                                         })
 
 
-  const fetchCurrentCityWeather = async (city:string=weather.city) => {
-    setError("")
-    const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${import.meta.env.VITE_WEATHER_API_KEY}&units=metric`)
+
+  // const fetchCurrentCityWeather = async (city:string=weather.city) => {
+  //   setError("")
+  //   const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${import.meta.env.VITE_WEATHER_API_KEY}&units=metric`)
        
-    if(!res.ok) setError("Enter a valid city name")
-    else{
-      const data = await res.json()
-      console.log(data)
-      setWeather({
-        temp: data.main.temp,
-        city: data.name,
-        humidity: data.main.humidity,
-        wind: data.wind.speed,
-        icon: getImagePath(data.weather[0].main)
-      })
-    }
+  //   if(!res.ok) setError("Enter a valid city name")
+  //   else{
+  //     const data = await res.json()
+  //     console.log(data)
+  //     setWeather({
+  //       temp: data.main.temp,
+  //       city: data.name,
+  //       humidity: data.main.humidity,
+  //       wind: data.wind.speed,
+  //       icon: getImagePath(data.weather[0].main)
+  //     })
+  //   }
     
-  }
+  // }
 
   const handleSuggestions = (city:string) => {
     setValue(city)
-    fetchCurrentCityWeather(city)
+    dispatch(fetchWeather(city))
     setFilteredCities([])
   }
 
 
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition((position) => {
-      const {latitude, longitude} = position.coords
-      fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${import.meta.env.VITE_WEATHER_API_KEY}&units=metric`)
-      .then(res => res.json())
-      .then(data => {
-        // console.log(data)
-        setWeather({
-          temp: data.main.temp,
-          city: data.name,
-          humidity: data.main.humidity,
-          wind: data.wind.speed,
-          icon: getImagePath(data.weather[0].main)
-        })
-      })
-    }
-    )
+    // navigator.geolocation.getCurrentPosition((position) => {
+    //   const {latitude, longitude} = position.coords
+    //   fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${import.meta.env.VITE_WEATHER_API_KEY}&units=metric`)
+    //   .then(res => res.json())
+    //   .then(data => {
+    //     // console.log(data)
+    //     setWeather({
+    //       temp: data.main.temp,
+    //       city: data.name,
+    //       humidity: data.main.humidity,
+    //       wind: data.wind.speed,
+    //       icon: getImagePath(data.weather[0].main)
+    //     })
+    //   })
+    // }
+    // )
+
+    dispatch(fetchWeather("Guwahati"))
     // fetchCurrentCityWeather()
   },[])
 
@@ -102,7 +90,7 @@ function App() {
   useEffect(() => {
     if(value.length > 0){
       const filtered = cities.filter(city => city.name.toLowerCase().includes(value.toLowerCase()))
-      console.log("Suggestions:", filtered)
+      // console.log("Suggestions:", filtered)
       setFilteredCities(filtered)
     }else{
       setFilteredCities([])
@@ -137,7 +125,7 @@ function App() {
                   </ul>
                 )}
           </div>
-          <button onClick={() => fetchCurrentCityWeather(value)}
+          <button onClick={() => dispatch(fetchWeather(value))}
                   className="bg-gray-200 rounded-md p-2 focus:outline-none hover:scale-110 transform transition-all duration-300 ease-in-out">
             <svg
                className="w-6 h-6 "
@@ -162,6 +150,9 @@ function App() {
         <p className='text-amber-400 text-center font-medium py-4'>{error && error}</p>
 
         {/* WEATHER DETAILS */}
+        {loading ? <h1 className="text-white text-2xl font-semibold text-center py-4">Loading...</h1>
+        :
+        <>
         <div className="flex gap-8 justify-center pt-12 ">
           <img src={weather.icon === "" ? clear : weather.icon}
                 alt="weather icon"
@@ -192,6 +183,10 @@ function App() {
           </div>
 
         </div>
+        </>
+        
+        }
+        
 
       </div>
     </main>
