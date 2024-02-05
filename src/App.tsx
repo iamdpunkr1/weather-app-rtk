@@ -85,9 +85,22 @@ function App() {
     // fetchCurrentCityWeather()
   },[])
 
-  
-
-  useEffect(() => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && value.trim() !== ''){
+      dispatch(fetchWeather(value))
+      setFilteredCities([])
+    }
+  }
+  // useEffect(() => {
+  //   if(value.length > 0){
+  //     const filtered = cities.filter(city => city.name.toLowerCase().includes(value.toLowerCase()))
+  //     // console.log("Suggestions:", filtered)
+  //     setFilteredCities(filtered)
+  //   }else{
+  //     setFilteredCities([])
+  //   }
+  // },[value, cities])
+  const handleFilteredCities = () => {
     if(value.length > 0){
       const filtered = cities.filter(city => city.name.toLowerCase().includes(value.toLowerCase()))
       // console.log("Suggestions:", filtered)
@@ -95,8 +108,18 @@ function App() {
     }else{
       setFilteredCities([])
     }
-  },[value, cities])
+  }
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value)
+    handleFilteredCities()
+  }
+
+  const handleBlur = () => {
+    setTimeout(() => {
+      setFilteredCities([])
+    }, 300)
+  }
 
   return (
     <main className="flex justify-center items-center h-screen">
@@ -107,12 +130,16 @@ function App() {
           <div className='flex flex-col relative w-full'>
           <input type="text"
                  value={value}
-                 onChange={(e) => setValue(e.target.value)}
+                 onChange={handleChange}
+                //  onFocus={handleFilteredCities}
+                 onBlur={handleBlur}
+                 onKeyDown={handleKeyPress}
                  placeholder="Enter any city name"
                  className="w-full rounded-md p-2 px-4 bg-gray-100 focus:outline-slate-500 font-semibold" />
                  
                  {filteredCities.length > 0 && (
-                  <ul className="absolute h-28 px-4 opacity-80 overflow-y-scroll overflow-x-hidden z-10 bg-white border border-gray-300 w-full top-10  rounded-md shadow-md">
+                  <ul
+                  className="absolute h-28 px-4 opacity-80 overflow-y-scroll overflow-x-hidden z-10 bg-white border border-gray-300 w-full top-10  rounded-md shadow-md">
                     {filteredCities.map((city:CityType, i:number) => (
                       <li
                         key={i}
